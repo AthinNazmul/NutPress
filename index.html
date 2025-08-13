@@ -15,7 +15,7 @@
     background-color: #f0f0f0;
   }
   button {
-    padding: 50px 80px;
+    padding: 40px 70px;
     font-size: 2rem;
     background-color: #FF6F00;
     color: white;
@@ -23,6 +23,7 @@
     border-radius: 20px;
     cursor: pointer;
     box-shadow: 0px 5px 10px rgba(0,0,0,0.2);
+    margin: 10px;
   }
   button:active {
     transform: scale(0.97);
@@ -31,12 +32,14 @@
     margin-top: 20px;
     font-size: 1.2rem;
     color: #333;
+    text-align: center;
   }
 </style>
 </head>
 <body>
 
-<button id="notifyBtn">Press NutPress</button>
+<button id="activateBtn">Activate NutPress Notifications</button>
+<button id="notifyBtn" style="display:none;">Press NutPress</button>
 <audio id="alertSound" src="assets/beep.wav"></audio>
 <label id="statusLabel">NutPress is waiting...</label>
 
@@ -55,19 +58,28 @@ const firebaseConfig = {
   appId: "1:980337842212:web:597417262c6617e82c20b1",
   measurementId: "G-QJCL7EY37R"
 };
-
-  // Initialize Firebase
   firebase.initializeApp(firebaseConfig);
   const db = firebase.database();
 
   const alertSound = document.getElementById('alertSound');
   const statusLabel = document.getElementById('statusLabel');
+  const notifyBtn = document.getElementById('notifyBtn');
   let lastValue = null;
 
-  // Listen for NutPress updates from other devices
+  // Activate notifications on first user gesture
+  document.getElementById('activateBtn').addEventListener('click', () => {
+    alertSound.play().then(() => alertSound.pause());
+    document.getElementById('activateBtn').style.display = 'none';
+    notifyBtn.style.display = 'inline-block';
+    statusLabel.textContent = "NutPress is ready!";
+  });
+
+  // Listen for NutPress updates
   db.ref('nutpress').on('value', snapshot => {
     const val = snapshot.val();
     if (val && val !== lastValue) {
+      // Play sound & vibrate
+      alertSound.currentTime = 0;
       alertSound.play();
       if (navigator.vibrate) navigator.vibrate([500, 200, 500]);
       statusLabel.textContent = "NutPress was pressed!";
@@ -76,7 +88,7 @@ const firebaseConfig = {
   });
 
   // Button click: notify all devices
-  document.getElementById('notifyBtn').addEventListener('click', () => {
+  notifyBtn.addEventListener('click', () => {
     const timestamp = Date.now();
     db.ref('nutpress').set(timestamp);
     statusLabel.textContent = "You pressed NutPress!";
@@ -85,4 +97,5 @@ const firebaseConfig = {
 
 </body>
 </html>
+
 
