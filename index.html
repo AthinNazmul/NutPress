@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NutPress</title>
+<style>
+  body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    font-family: sans-serif;
+    flex-direction: column;
+    background-color: #f0f0f0;
+  }
+  button {
+    padding: 50px 80px;
+    font-size: 2rem;
+    background-color: #FF6F00;
+    color: white;
+    border: none;
+    border-radius: 20px;
+    cursor: pointer;
+    box-shadow: 0px 5px 10px rgba(0,0,0,0.2);
+  }
+  button:active {
+    transform: scale(0.97);
+  }
+  label {
+    margin-top: 20px;
+    font-size: 1.2rem;
+    color: #333;
+  }
+</style>
+</head>
+<body>
+
+<button id="notifyBtn">Press NutPress</button>
+<audio id="alertSound" src="assets/beep.wav"></audio>
+<label id="statusLabel">NutPress is waiting...</label>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+<script>
+  // Replace with your Firebase config
+const firebaseConfig = {
+  apiKey: "AIzaSyDW727eua9WRYUWnS2GFh-PQ5I0ws1tPaw",
+  authDomain: "doorbell-ae070.firebaseapp.com",
+  projectId: "doorbell-ae070",
+  storageBucket: "doorbell-ae070.firebasestorage.app",
+  messagingSenderId: "980337842212",
+  appId: "1:980337842212:web:597417262c6617e82c20b1",
+  measurementId: "G-QJCL7EY37R"
+};
+
+  // Initialize Firebase
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
+
+  const alertSound = document.getElementById('alertSound');
+  const statusLabel = document.getElementById('statusLabel');
+  let lastValue = null;
+
+  // Listen for NutPress updates from other devices
+  db.ref('nutpress').on('value', snapshot => {
+    const val = snapshot.val();
+    if (val && val !== lastValue) {
+      alertSound.play();
+      if (navigator.vibrate) navigator.vibrate([500, 200, 500]);
+      statusLabel.textContent = "NutPress was pressed!";
+    }
+    lastValue = val;
+  });
+
+  // Button click: notify all devices
+  document.getElementById('notifyBtn').addEventListener('click', () => {
+    const timestamp = Date.now();
+    db.ref('nutpress').set(timestamp);
+    statusLabel.textContent = "You pressed NutPress!";
+  });
+</script>
+
+</body>
+</html>
+
