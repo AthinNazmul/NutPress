@@ -9,9 +9,9 @@
     display: flex;
     justify-content: center;
     align-items: center;
+    flex-direction: column;
     height: 100vh;
     font-family: sans-serif;
-    flex-direction: column;
     background-color: #f0f0f0;
   }
   button {
@@ -43,21 +43,23 @@
 <audio id="alertSound" src="assets/beep.wav"></audio>
 <label id="statusLabel">NutPress is waiting...</label>
 
-<!-- Firebase -->
+<!-- Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
 <script>
-  // Replace with your Firebase config
-const firebaseConfig = {
-  apiKey: "AIzaSyDW727eua9WRYUWnS2GFh-PQ5I0ws1tPaw",
-  authDomain: "doorbell-ae070.firebaseapp.com",
-  projectId: "doorbell-ae070",
-  storageBucket: "doorbell-ae070.firebasestorage.app",
-  messagingSenderId: "980337842212",
-  appId: "1:980337842212:web:597417262c6617e82c20b1",
-  measurementId: "G-QJCL7EY37R"
-};
+  // ====== REPLACE THESE WITH YOUR FIREBASE CONFIG ======
+  const firebaseConfig = {
+    apiKey: "AIzaSyD3gpWDsQRQDditzkk4FeShDc0kieys-JE",
+    authDomain: "nutpress-6808c.firebaseapp.com",
+    databaseURL: "https://nutpress-6808c-default-rtdb.firebaseio.com",
+    projectId: "nutpress-6808c",
+    storageBucket: "nutpress-6808c.firebasestorage.app",
+    messagingSenderId: "789810972984",
+    appId: "1:789810972984:web:9ccd1ff27a972f09a4d9cd"
+  };
+
+  // Initialize Firebase
   firebase.initializeApp(firebaseConfig);
   const db = firebase.database();
 
@@ -66,36 +68,40 @@ const firebaseConfig = {
   const notifyBtn = document.getElementById('notifyBtn');
   let lastValue = null;
 
-  // Activate notifications on first user gesture
+  // User gesture to allow audio playback
   document.getElementById('activateBtn').addEventListener('click', () => {
-    alertSound.play().then(() => alertSound.pause());
+    alertSound.play().then(() => alertSound.pause()); // gesture activates audio
     document.getElementById('activateBtn').style.display = 'none';
     notifyBtn.style.display = 'inline-block';
     statusLabel.textContent = "NutPress is ready!";
   });
 
-  // Listen for NutPress updates
+  // Button click: send notification to all devices
+  notifyBtn.addEventListener('click', () => {
+    const timestamp = Date.now();
+    db.ref('nutpress').set(timestamp)
+      .then(() => console.log("NutPress pressed!"))
+      .catch(err => console.error("Firebase write error:", err));
+    statusLabel.textContent = "You pressed NutPress!";
+  });
+
+  // Listen for updates from Firebase
   db.ref('nutpress').on('value', snapshot => {
     const val = snapshot.val();
     if (val && val !== lastValue) {
-      // Play sound & vibrate
+      lastValue = val;
+      statusLabel.textContent = "NutPress was pressed!";
+      // Play sound
       alertSound.currentTime = 0;
       alertSound.play();
+      // Vibrate if supported
       if (navigator.vibrate) navigator.vibrate([500, 200, 500]);
-      statusLabel.textContent = "NutPress was pressed!";
     }
-    lastValue = val;
-  });
-
-  // Button click: notify all devices
-  notifyBtn.addEventListener('click', () => {
-    const timestamp = Date.now();
-    db.ref('nutpress').set(timestamp);
-    statusLabel.textContent = "You pressed NutPress!";
   });
 </script>
 
 </body>
 </html>
+
 
 
