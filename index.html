@@ -159,12 +159,12 @@ const firebaseConfig = {
   let lastValue = null;
 
   // Activate audio & notifications
-  document.getElementById('activateBtn').addEventListener('click', () => {
-    alertSound.play().then(() => alertSound.pause());
-    document.getElementById('activateBtn').style.display = 'none';
-    notifyBtn.style.display = 'inline-block';
-    statusLabel.textContent = "NutPress is ready!";
-  });
+  // document.getElementById('activateBtn').addEventListener('click', () => {
+  //   alertSound.play().then(() => alertSound.pause());
+  //   document.getElementById('activateBtn').style.display = 'none';
+  //   notifyBtn.style.display = 'inline-block';
+  //   statusLabel.textContent = "!";
+  // });
 
   // Button click: send notification
   notifyBtn.addEventListener('click', () => {
