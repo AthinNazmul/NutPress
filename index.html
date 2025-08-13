@@ -3,105 +3,207 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NutPress</title>
+<title>NutPress Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
 <style>
   body {
+    font-family: 'Montserrat', sans-serif;
+    margin: 0;
+    padding: 0;
+    background: linear-gradient(135deg, #FF6F00, #FFA000);
+    background-size: 400% 400%;
+    animation: gradientBG 15s ease infinite;
+    color: #fff;
     display: flex;
-    justify-content: center;
-    align-items: center;
     flex-direction: column;
-    height: 100vh;
-    font-family: sans-serif;
-    background-color: #f0f0f0;
+    align-items: center;
+    min-height: 100vh;
   }
+
+  @keyframes gradientBG {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+
+  h1 {
+    margin: 30px 0 10px;
+    font-size: 3rem;
+    text-shadow: 2px 2px 8px rgba(0,0,0,0.3);
+  }
+
+  #funnyLine {
+    font-size: 1.2rem;
+    margin-bottom: 20px;
+    color: #fff;
+    font-style: italic;
+    text-shadow: 1px 1px 4px rgba(0,0,0,0.3);
+    text-align: center;
+    animation: wiggle 2s infinite;
+  }
+
+  @keyframes wiggle {
+    0%, 100% { transform: rotate(0deg); }
+    25% { transform: rotate(1deg); }
+    50% { transform: rotate(-1deg); }
+    75% { transform: rotate(1deg); }
+  }
+
   button {
-    padding: 40px 70px;
+    padding: 30px 60px;
     font-size: 2rem;
-    background-color: #FF6F00;
-    color: white;
+    font-weight: bold;
     border: none;
-    border-radius: 20px;
+    border-radius: 25px;
     cursor: pointer;
-    box-shadow: 0px 5px 10px rgba(0,0,0,0.2);
-    margin: 10px;
+    margin: 15px;
+    transition: transform 0.2s, box-shadow 0.2s;
+    background-color: #FFCC00;
+    color: #333;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+    animation: pulseBtn 2s infinite;
   }
+
+  button:hover {
+    transform: scale(1.05);
+    box-shadow: 0 12px 30px rgba(0,0,0,0.4);
+  }
+
   button:active {
     transform: scale(0.97);
+    box-shadow: 0 6px 15px rgba(0,0,0,0.3);
   }
-  label {
+
+  @keyframes pulseBtn {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+  }
+
+  #pressList {
     margin-top: 20px;
-    font-size: 1.2rem;
-    color: #333;
-    text-align: center;
+    width: 90%;
+    max-width: 500px;
+    display: flex;
+    flex-direction: column-reverse;
+    overflow-y: auto;
+    max-height: 50vh;
+    padding-bottom: 10px;
+  }
+
+  .pressItem {
+    padding: 15px 20px;
+    margin: 5px 0;
+    border-radius: 15px;
+    animation: fadeIn 0.5s ease;
+    display: flex;
+    justify-content: space-between;
+    color: #fff;
+    font-weight: bold;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  #statusLabel {
+    margin-top: 20px;
+    font-size: 1.3rem;
+    padding: 8px 15px;
+    border-radius: 12px;
+    background: rgba(0,0,0,0.2);
+    backdrop-filter: blur(5px);
+  }
+
+  @media (max-width: 500px) {
+    h1 { font-size: 2.2rem; }
+    #funnyLine { font-size: 1rem; }
+    button { font-size: 1.5rem; padding: 20px 40px; }
+    #statusLabel { font-size: 1rem; }
   }
 </style>
 </head>
 <body>
 
-<button id="activateBtn">Activate NutPress Notifications</button>
+<p id="funnyLine">A real man never knocks on doors… he presses the nuts! 😎 Just press the ring button.</p>
+<button id="activateBtn">Activate Notifications</button>
 <button id="notifyBtn" style="display:none;">Press NutPress</button>
 <audio id="alertSound" src="assets/beep.wav"></audio>
-<label id="statusLabel">NutPress is waiting...</label>
+<div id="statusLabel">NutPress is waiting...</div>
+
+<div id="pressList"></div>
 
 <!-- Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
 <script>
-  // ====== REPLACE THESE WITH YOUR FIREBASE CONFIG ======
-  const firebaseConfig = {
-    apiKey: "AIzaSyD3gpWDsQRQDditzkk4FeShDc0kieys-JE",
-    authDomain: "nutpress-6808c.firebaseapp.com",
-    databaseURL: "https://nutpress-6808c-default-rtdb.firebaseio.com",
-    projectId: "nutpress-6808c",
-    storageBucket: "nutpress-6808c.firebasestorage.app",
-    messagingSenderId: "789810972984",
-    appId: "1:789810972984:web:9ccd1ff27a972f09a4d9cd"
-  };
+  // ====== REPLACE WITH YOUR FIREBASE CONFIG ======
+const firebaseConfig = {
+  apiKey: "AIzaSyD3gpWDsQRQDditzkk4FeShDc0kieys-JE",
+  authDomain: "nutpress-6808c.firebaseapp.com",
+  databaseURL: "https://nutpress-6808c-default-rtdb.firebaseio.com",
+  projectId: "nutpress-6808c",
+  storageBucket: "nutpress-6808c.firebasestorage.app",
+  messagingSenderId: "789810972984",
+  appId: "1:789810972984:web:9ccd1ff27a972f09a4d9cd"
+};
 
-  // Initialize Firebase
   firebase.initializeApp(firebaseConfig);
   const db = firebase.database();
 
   const alertSound = document.getElementById('alertSound');
   const statusLabel = document.getElementById('statusLabel');
   const notifyBtn = document.getElementById('notifyBtn');
+  const pressList = document.getElementById('pressList');
   let lastValue = null;
 
-  // User gesture to allow audio playback
+  // Activate audio & notifications
   document.getElementById('activateBtn').addEventListener('click', () => {
-    alertSound.play().then(() => alertSound.pause()); // gesture activates audio
+    alertSound.play().then(() => alertSound.pause());
     document.getElementById('activateBtn').style.display = 'none';
     notifyBtn.style.display = 'inline-block';
     statusLabel.textContent = "NutPress is ready!";
   });
 
-  // Button click: send notification to all devices
+  // Button click: send notification
   notifyBtn.addEventListener('click', () => {
     const timestamp = Date.now();
-    db.ref('nutpress').set(timestamp)
+    db.ref('nutpress').push({ time: timestamp })
       .then(() => console.log("NutPress pressed!"))
       .catch(err => console.error("Firebase write error:", err));
     statusLabel.textContent = "You pressed NutPress!";
   });
 
+  // Generate random pastel color for each press card
+  function getRandomColor() {
+    const r = Math.floor(Math.random()*156 + 100);
+    const g = Math.floor(Math.random()*156 + 100);
+    const b = Math.floor(Math.random()*156 + 100);
+    return `rgb(${r},${g},${b})`;
+  }
+
   // Listen for updates from Firebase
-  db.ref('nutpress').on('value', snapshot => {
-    const val = snapshot.val();
-    if (val && val !== lastValue) {
-      lastValue = val;
-      statusLabel.textContent = "NutPress was pressed!";
-      // Play sound
+  db.ref('nutpress').on('child_added', snapshot => {
+    const data = snapshot.val();
+    if (data) {
+      const time = new Date(data.time).toLocaleTimeString();
+      const item = document.createElement('div');
+      item.className = 'pressItem';
+      item.style.backgroundColor = getRandomColor();
+      item.innerHTML = `<span>NutPress</span><span>${time}</span>`;
+      pressList.prepend(item);
+
+      // Play sound & vibrate
       alertSound.currentTime = 0;
       alertSound.play();
-      // Vibrate if supported
       if (navigator.vibrate) navigator.vibrate([500, 200, 500]);
+
+      // Auto-scroll to top
+      pressList.scrollTop = 0;
     }
   });
 </script>
 
 </body>
 </html>
-
-
-
